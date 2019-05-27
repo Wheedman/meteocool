@@ -7,6 +7,7 @@ import android.location.Location
 import android.util.Log
 import com.google.android.gms.location.LocationResult
 import com.meteocool.location.LocationResultHelper.Companion.getDistanceToLastLocation
+import java.util.*
 
 class LocationUpdatesBroadcastReceiver : BroadcastReceiver(){
 
@@ -21,20 +22,32 @@ class LocationUpdatesBroadcastReceiver : BroadcastReceiver(){
             if (ACTION_PROCESS_UPDATES == action) {
                 val result = LocationResult.extractResult(intent)
                 if (result != null) {
-                    val location = result.lastLocation
+                    val location : Location = result.lastLocation
                     val lastLocation = LocationResultHelper.getSavedLocationResult(context)
+                    val lastLat = lastLocation.getValue(LocationResultHelper.KEY_LOCATION_UPDATES_RESULT_LAT)
+                    val lastLon = lastLocation.getValue(LocationResultHelper.KEY_LOCATION_UPDATES_RESULT_LON)
+                    val lastAcc = lastLocation.getValue(LocationResultHelper.KEY_LOCATION_UPDATES_RESULT_ACC)
                     val isDistanceBiggerThan500F = getDistanceToLastLocation(location, context) > 499f
                        if(isDistanceBiggerThan500F){
-                            Log.i(TAG, "$isDistanceBiggerThan500F")
-                            Log.i(TAG, "$location is better than $lastLocation")
+                            Log.d(TAG, "Is distance bigger than 500f: $isDistanceBiggerThan500F")
+                            Log.d(TAG, "$location is better than $lastLocation")
                             UploadLocation().execute(location)
+                           if(LocationResultHelper.isExternalStorageWritable()){
+                               LocationResultHelper.writeToSDFile(LocationResultHelper.getCurrentTime() + TAG + "Is distance bigger than 500f: $isDistanceBiggerThan500F")
+                               LocationResultHelper.writeToSDFile(LocationResultHelper.getCurrentTime() + TAG + "[${location.latitude}, ${location.longitude}, ${location.accuracy}] is better than [$lastLat, $lastLon, $lastAcc]")
+                               LocationResultHelper.writeToSDFile(LocationResultHelper.getCurrentTime() + TAG + "[${location.latitude}, ${location.longitude}, ${location.accuracy}] pushed")
+                           }
                         }else{
-                            Log.i(TAG, "$location is not better than $lastLocation")
+                           if(LocationResultHelper.isExternalStorageWritable()) {
+                               LocationResultHelper.writeToSDFile(LocationResultHelper.getCurrentTime() + TAG + "[${location.latitude}, ${location.longitude}, ${location.accuracy}] is not better than [$lastLat, $lastLon, $lastAcc]")
+
+                           }
+                            Log.d(TAG, "$location is not better than $lastLocation")
                         }
                     val locationResultHelper = LocationResultHelper(context, location)
                     // Save the location data to SharedPreferences.
                     locationResultHelper.saveResults()
-                    Log.i(TAG, LocationResultHelper.getSavedLocationResult(context).toString())
+                    Log.d(TAG, LocationResultHelper.getSavedLocationResult(context).toString())
                 }
             }
         }

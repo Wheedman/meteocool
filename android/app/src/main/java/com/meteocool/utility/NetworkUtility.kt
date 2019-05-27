@@ -2,10 +2,12 @@ package com.meteocool.utility
 
 import android.util.Log
 import com.google.gson.Gson
+import com.meteocool.location.LocationResultHelper
 import java.io.*
 import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.*
 
 class NetworkUtility{
 companion object {
@@ -51,6 +53,9 @@ companion object {
                     }
                     it.close()
                     Log.d("NetworkUtility", "$response")
+                    if(LocationResultHelper.isExternalStorageWritable()){
+                        LocationResultHelper.writeToSDFile(LocationResultHelper.getCurrentTime()  + " NetworkUtility Response $response")
+                    }
                 }
             }
         }catch(e : Exception){

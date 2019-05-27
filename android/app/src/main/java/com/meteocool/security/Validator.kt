@@ -11,8 +11,21 @@ class Validator{
 companion object {
 
     private const val PERMISSION_REQUEST_LOCATION = 34
+    private const val PERMISSION_REQUEST_WRITE = 112
 
      fun checkAndroidPermissions(context: Context, activity: Activity) {
+         if (ContextCompat.checkSelfPermission(
+                 context,
+                 Manifest.permission.WRITE_EXTERNAL_STORAGE
+             )
+             != PackageManager.PERMISSION_GRANTED
+         ) {
+             ActivityCompat.requestPermissions(
+                 activity,
+                 arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                 PERMISSION_REQUEST_WRITE
+             )
+         }
         // Here, thisActivity is the current activity
         if (ContextCompat.checkSelfPermission(
                 context,
