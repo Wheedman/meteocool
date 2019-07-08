@@ -16,35 +16,41 @@ import com.meteocool.security.Validator
 
 
 /** Instantiate the interface and set the comntext */
-class WebAppInterface(private val  activity: Activity, private val mContext: Context, private val mWebView: WebView) {
+class WebAppInterface(private val  activity: Activity) {
 
     companion object{
         private val TAG = "WebAppInterface"
     }
 
+    private val webView = activity.findViewById<WebView>(R.id.webView)
+
     @JavascriptInterface
     fun injectLocation() {
-        val preferenceManager = PreferenceManager.getDefaultSharedPreferences(mContext)
-        if(Validator.isLocationPermissionGranted(mContext)) {
-
-            val lastLocation = LocationResultHelper.getSavedLocationResult(mContext)
+        Log.d(TAG, "injectLocation")
+        val preferenceManager = PreferenceManager.getDefaultSharedPreferences(activity)
+        if(Validator.isLocationPermissionGranted(activity)) {
+            Log.d(TAG, "entered")
+            val lastLocation = LocationResultHelper.getSavedLocationResult(activity)
 
             if(lastLocation.getValue(LocationResultHelper.KEY_LOCATION_UPDATES_RESULT_LAT) >= 0.0) {
-                Log.d(TAG, "entered")
+
                 val lat = lastLocation.getValue(LocationResultHelper.KEY_LOCATION_UPDATES_RESULT_LAT)
                 val lon = lastLocation.getValue(LocationResultHelper.KEY_LOCATION_UPDATES_RESULT_LON)
                 val acc = lastLocation.getValue(LocationResultHelper.KEY_LOCATION_UPDATES_RESULT_ACC)
                 val string = "window.injectLocation($lat , $lon , $acc , true);"
-                mWebView.post({
+                Log.d(TAG, string)
+                webView.post({
                     run  {
-                        mWebView.evaluateJavascript(string, { _ ->
+                        webView.evaluateJavascript(string, { _ ->
                             Log.d(TAG, string)
                         })
                     }
                 })
             }else{
-                Toast.makeText(mContext, R.string.gps_button_toast, Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, R.string.gps_button_toast, Toast.LENGTH_SHORT).show()
             }
+        }else{
+            Log.d(TAG, "Permission not granted")
         }
     }
 
@@ -54,20 +60,21 @@ class WebAppInterface(private val  activity: Activity, private val mContext: Con
         drawerLayout.openDrawer(GravityCompat.START)
     }
 
-    fun injectSettings(){
-        val preferenceManager = PreferenceManager.getDefaultSharedPreferences(mContext)
+    @JavascriptInterface
+    fun requestSettings(){
+        val preferenceManager = PreferenceManager.getDefaultSharedPreferences(activity)
         val settings : Gson = Gson().newBuilder().create()
         val myMap = mapOf<String, Boolean>(
                 Pair("darkMode",preferenceManager.getBoolean("map_mode", false)),
-                Pair("zoomOnForeGround",preferenceManager.getBoolean("map_zoom", false)),
+                Pair("zoomOnForeground",preferenceManager.getBoolean("map_zoom", false)),
                 Pair("mapRotation",preferenceManager.getBoolean("map_rotate", false)))
 
         val string = "window.injectSettings(${settings.toJson(myMap)});"
-        Log.d(TAG, string)
-        mWebView.post({
+        webView.post({
             run  {
-                mWebView.evaluateJavascript(string, { _ ->
+                webView.evaluateJavascript(string, { foo ->
                     Log.d(TAG, string)
+                    Log.d(TAG, foo)
                 })
             }
         })

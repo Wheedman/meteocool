@@ -23,8 +23,8 @@ import com.google.firebase.database.FirebaseDatabase
 
 import com.google.firebase.iid.FirebaseInstanceId
 import com.meteocool.location.LocationUpdatesBroadcastReceiver
-import org.jetbrains.anko.doAsync
 import com.meteocool.location.WebAppInterface
+import org.jetbrains.anko.doAsync
 
 import com.meteocool.security.Validator
 import com.meteocool.settings.SettingsFragment
@@ -35,6 +35,8 @@ import com.meteocool.utility.NetworkUtility
 
 
 class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
+
+
 
     private val pendingIntent: PendingIntent
         get() {
@@ -50,10 +52,10 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
      */
     private var mFusedLocationClient: FusedLocationProviderClient? = null
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
 
         if (FirebaseApp.getApps(this).isNotEmpty()) {
             FirebaseDatabase.getInstance().setPersistenceEnabled(true);
@@ -65,7 +67,6 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
             createLocationRequest()
             requestLocationUpdates()
         }
-
 
         setContentView(R.layout.activity_meteocool)
         val appVersion = findViewById<TextView>(R.id.app_version)
@@ -84,9 +85,8 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
         val navAdapter = NavDrawerAdapter(this, R.layout.menu_item, drawerItems)
         drawerList.adapter = navAdapter
         drawerList.onItemClickListener = navAdapter
+       // drawerList.performItemClick(drawerList, 0, 0)
     }
-
-
 
     /**
      * Handles the Request Updates button and requests start of location updates.
@@ -94,8 +94,11 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
     private fun requestLocationUpdates() {
         try {
             Log.i(TAG, "Starting location updates")
-            mFusedLocationClient!!.requestLocationUpdates(
-                mLocationRequest, pendingIntent)
+            if(mFusedLocationClient != null) {
+                mFusedLocationClient!!.requestLocationUpdates(
+                    mLocationRequest, pendingIntent
+                )
+            }
 
         } catch (e: SecurityException) {
             e.printStackTrace()
@@ -103,17 +106,17 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
 
     }
 
-
-
     override fun onStart() {
         super.onStart()
+        val drawerList : ListView = findViewById(R.id.drawer_menu)
+
+
+
         if(Validator.isLocationPermissionGranted(this)) {
             requestLocationUpdates()
         }
-//        val mWebView : WebView = findViewById(R.id.webView)
-//        val webAppInterface = WebAppInterface(this, this, mWebView)
-//        webAppInterface.injectSettings()
-//        mWebView.addJavascriptInterface(webAppInterface, "Android")
+        val mWebView : WebView = findViewById(R.id.webView)
+        mWebView.addJavascriptInterface(WebAppInterface(this), "Android")
 
         var token = FirebaseInstanceId.getInstance().token
         if (token == null) {
@@ -134,7 +137,6 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
     override fun onResume() {
         super.onResume()
         cancelNotifications()
-
     }
 
     override fun onConnected(p0: Bundle?) {
@@ -200,8 +202,6 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
         // delivered sooner than this interval.
         mLocationRequest!!.maxWaitTime = MAX_WAIT_TIME
     }
-
-
 
 
 

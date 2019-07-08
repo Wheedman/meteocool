@@ -1,6 +1,5 @@
 package com.meteocool
 
-import android.app.Activity
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -8,14 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import com.meteocool.location.WebAppInterface
 import java.util.*
 
 
 class MapFragment() : Fragment(){
 
     companion object {
-        private const val WEB_URL = "https://meteocool.com/?mobile=android2"
+        const val MAP_URL = "https://meteocool.com/?mobile=android2"
+        const val DOC_URL = "https://meteocool.com/documentation.html"
     }
 
     private var mWebView : WebView? = null
@@ -34,18 +33,20 @@ class MapFragment() : Fragment(){
             0 -> "&lang=de"
             else -> "&lang=en"
         }
-        mWebView?.loadUrl(WEB_URL +locale)
+        mWebView?.loadUrl(MAP_URL +locale)
         // Force links and redirects to open in the WebView instead of in a browser
         mWebView?.webViewClient = WebViewClient()
         return view
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        val mWebView : WebView = activity!!.findViewById(R.id.webView)
-        val webAppInterface = WebAppInterface(activity!!, activity!!, mWebView)
-        webAppInterface.injectSettings()
-        mWebView.addJavascriptInterface(webAppInterface, "Android")
-
+    override fun onResume() {
+        super.onResume()
+        val string = "window.manualTileUpdateFn(true);"
+        mWebView!!.post({
+            run  {
+                mWebView!!.evaluateJavascript(string, { foo ->
+                })
+            }
+        })
     }
 }

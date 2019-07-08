@@ -18,8 +18,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
-        <meta-data
+         <meta-data
             android:name="android.webkit.WebView.EnableSafeBrowsing"
             android:value="false"/>
         <meta-data

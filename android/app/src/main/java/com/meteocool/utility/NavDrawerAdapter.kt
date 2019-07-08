@@ -5,15 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.meteocool.DocumentationFragment
 import com.meteocool.MapFragment
 import com.meteocool.R
 import com.meteocool.location.WebAppInterface
+import org.jetbrains.anko.defaultSharedPreferences
 
 
 class NavDrawerAdapter(private val activity : AppCompatActivity, private val layoutResourceId : Int, private val navDrawerItems: List<NavDrawerItem>)
@@ -21,19 +19,33 @@ class NavDrawerAdapter(private val activity : AppCompatActivity, private val lay
 , AdapterView.OnItemClickListener{
 
 
+
+
     override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
         super.getPosition(getItem(position))
-            when (getItem(position)!!.menuHeading) {
+        view!!.isSelected = true
+        val  mWebView = activity.findViewById(R.id.webView) as WebView
+        when (getItem(position)!!.menuHeading) {
                 activity.getString(R.string.map_header) -> {
-                    activity.supportFragmentManager.beginTransaction().replace(R.id.fragmentContainer, MapFragment())
-                        .commit()
-
+                    val lastState = activity.defaultSharedPreferences.getString("map_url", null)
+                    if(lastState != null){
+                        mWebView.loadUrl(lastState)
+                    }else {
+                        activity.supportFragmentManager.beginTransaction()
+                            .replace(R.id.fragmentContainer, MapFragment())
+                            .commit()
+                    }
                 }
                 activity.getString(R.string.menu_documentation) -> {
-                    activity.supportFragmentManager.beginTransaction().replace(R.id.fragmentContainer, DocumentationFragment()).commit()
+                    activity.defaultSharedPreferences.edit()
+                        .putString("map_url", mWebView.url)
+                        .apply()
+                    mWebView.loadUrl(MapFragment.DOC_URL)
                 }
             }
     }
+
+
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         var listItem = convertView
@@ -41,9 +53,11 @@ class NavDrawerAdapter(private val activity : AppCompatActivity, private val lay
         listItem = inflater.inflate(layoutResourceId, parent, false)
         val imageIcon = listItem.findViewById<ImageView>(R.id.drawerImgID)
         val menuHeader = listItem.findViewById<TextView>(R.id.drawerHeaderText)
+
         val folder = navDrawerItems[position]
         imageIcon.setImageResource(folder.imgID)
-        menuHeader.setText(folder.menuHeading)
+        menuHeader.text = folder.menuHeading
+
         return listItem
     }
 
