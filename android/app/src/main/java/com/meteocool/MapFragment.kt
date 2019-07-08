@@ -28,7 +28,6 @@ class MapFragment() : Fragment(){
         webSettings?.databaseEnabled = true
         webSettings?.setGeolocationEnabled(true)
 
-
         val locale = when(Locale.getDefault().displayLanguage.compareTo(Locale.GERMAN.displayLanguage)){
             0 -> "&lang=de"
             else -> "&lang=en"

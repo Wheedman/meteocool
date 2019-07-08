@@ -206,6 +206,7 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
 
 
     companion object{
+
         private val TAG = MeteocoolActivity::class.java.simpleName + "_location"
 
         /**
