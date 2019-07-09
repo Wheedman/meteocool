@@ -12,8 +12,9 @@ import java.util.*
 class NetworkUtility{
 companion object {
 
-    val POST_CLIENT_DATA_URL = URL("https://meteocool.com/post_location")
-    val CLEAR_URL  = URL("https://meteocool.com/clear_notification")
+    val POST_CLIENT_DATA = URL("https://meteocool.com/post_location")
+    val POST_UNREGISTER_TOKEN = URL("https://meteocool.com/unregister")
+    val POST_CLEAR_NOTIFICATION  = URL("https://meteocool.com/clear_notification")
 
     private fun buildJSONString(json : JSON) : String{
         val gsonBuilder = Gson().newBuilder().create()
@@ -36,8 +37,11 @@ companion object {
 
                 val wr = OutputStreamWriter(outputStream)
 
+
+
                 wr.write(jsonAsString)
                 wr.flush()
+
 
                 Log.d("NetworkUtility", "URL $url")
                 Log.d("NetworkUtility", "HTTP-Response $responseCode")
@@ -54,7 +58,7 @@ companion object {
                     it.close()
                     Log.d("NetworkUtility", "$response")
                     if(LocationResultHelper.isExternalStorageWritable()){
-                        LocationResultHelper.writeToSDFile(LocationResultHelper.getCurrentTime()  + " NetworkUtility Response $response")
+                        LocationResultHelper.writeToSDFile(LocationResultHelper.getCurrentTime()  + "Request: $jsonAsString ; NetworkUtility Response $response")
                     }
                 }
             }

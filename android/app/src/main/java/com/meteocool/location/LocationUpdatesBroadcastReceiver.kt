@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.location.Location
+import android.preference.PreferenceManager
 import android.util.Log
 import com.google.android.gms.location.LocationResult
 import com.meteocool.location.LocationResultHelper.Companion.getDistanceToLastLocation
@@ -31,7 +32,7 @@ class LocationUpdatesBroadcastReceiver : BroadcastReceiver(){
                        if(isDistanceBiggerThan500F){
                             Log.d(TAG, "Is distance bigger than 500f: $isDistanceBiggerThan500F")
                             Log.d(TAG, "$location is better than $lastLocation")
-                            UploadLocation().execute(location)
+                            UploadLocation().execute(location, PreferenceManager.getDefaultSharedPreferences(context).getString("fb", "no token"))
                            if(LocationResultHelper.isExternalStorageWritable()){
                                LocationResultHelper.writeToSDFile(LocationResultHelper.getCurrentTime() + TAG + "Is distance bigger than 500f: $isDistanceBiggerThan500F")
                                LocationResultHelper.writeToSDFile(LocationResultHelper.getCurrentTime() + TAG + "[${location.latitude}, ${location.longitude}, ${location.accuracy}] is better than [$lastLat, $lastLon, $lastAcc]")
