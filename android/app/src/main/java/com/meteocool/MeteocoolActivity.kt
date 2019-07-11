@@ -67,8 +67,6 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
             Log.d("Location", "Start Fused")
             mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
             requestLocationUpdates()
-        }else{
-            stopLocationRequests()
         }
 
         setContentView(R.layout.activity_meteocool)
