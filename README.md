@@ -5,7 +5,7 @@ visualisation & aggregation platform with focus on thunderstorms.
 Optimized for mobile devices, you can use it to both chase or
 avoid upcoming weather - that's up to you.
 
-![An exemplary cloud formation with high reflectivity (aka thunderstorm)](/frontend/assets/IMG_3076.jpg?raw=true "An exemplary cloud formation with high reflectivity")
+![An exemplary cloud formation with high reflectivity (aka thunderstorm)](/doc/pano-thunderstorm.jpg?raw=true "An exemplary cloud formation with high reflectivity")
 
 meteocool currently uses radar data provided by DWD and realtime lightning
 information from the awesome blitzortung.org project.
@@ -39,8 +39,6 @@ information from the awesome blitzortung.org project.
 <img width="100%" alt="Screenshot 2019-05-11 13 33 19" src="https://user-images.githubusercontent.com/1577223/57573080-444bb380-7423-11e9-935d-2a990f5026f6.png">
 
 # Development
-
-![UML Component Diagram](/doc/meteocool_component.png?raw=true "Component diagram")
 
 Use docker-compose (see below) for the backend. Run ```make dev```
 to run the development build (the first one might take a while).

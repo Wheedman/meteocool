@@ -1,4 +1,14 @@
 export class DeviceDetect {
+  constructor () {
+    // detect widget mode
+    this.auxPages = ["privacy.html", "documentation.html"];
+    this.widgetMode = this.isAuxPage();
+    if (window.location.hash) {
+      if (window.location.hash.includes("#widgetMap")) {
+        this.widgetMode = true;
+      }
+    }
+  }
   static isIos () {
     const userAgent = window.navigator.userAgent.toLowerCase();
     return /iphone|ipad|ipod/.test(userAgent);
@@ -10,6 +20,56 @@ export class DeviceDetect {
 
   static isiPhoneWithNotch () {
     return this.isIos() && this.isInStandaloneMode() && /iPhone X/.test(this.getiPhoneModel());
+  }
+
+  isWidgetMode () {
+    return this.widgetMode;
+  }
+
+  isAuxPage () {
+    return this.auxPages.some((s) => {
+      return "/" + s === window.location.pathname;
+    });
+  }
+
+  /*
+   * XXX change the mobile= parameter readout to something more elegant.
+   * This would break if the ifs are re-orderd...
+   */
+  static getAndroidAPILevel () {
+    if (window.location.search.indexOf("mobile=android2") !== -1) {
+      return 2;
+    } else if (window.location.search.indexOf("mobile=android") !== -1) {
+      return 1;
+    } else {
+      return -1;
+    }
+  }
+
+  static getIosAPILevel () {
+    if (DeviceDetect.isIos()) {
+      if (window.location.search.indexOf("mobile=ios3") !== -1) {
+        return 3;
+      }
+      if (window.location.search.indexOf("mobile=ios2") !== -1) {
+        return 2;
+      }
+    }
+    return -1;
+  }
+
+  static isApp () {
+    if (DeviceDetect.isIos()) {
+      if (window.location.search.indexOf("mobile=ios") !== -1) {
+        return true;
+      }
+    } else {
+      // XXX missing double check (like w/ iOS) because of missing isAndroid() method
+      if (window.location.search.indexOf("mobile=android") !== -1) {
+        return true;
+      }
+      return false;
+    }
   }
 
   static getiPhoneModel () {
@@ -46,3 +106,5 @@ export class DeviceDetect {
     }
   }
 }
+
+/* vim: set ts=2 sw=2 expandtab: */

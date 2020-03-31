@@ -19,7 +19,7 @@ mbtiles:
 	# process forecasts concurrently
 	nice -n 15 make -C . push &
 	# convert to mbtiles
-	/usr/local/bin/gdal2mbtiles --version "$$(date +%s)" --min-resolution=6 \
+	/usr/local/bin/gdal2mbtiles --version "$$(stat --printf '%Y' /scratch/raa01-wx_10000-latest-dwd---bin)" --min-resolution=6 \
 		--max-resolution=10 /scratch/raa01-wx_10000-latest-dwd-final.tif \
 		/scratch/tmp/raa01-wx_10000-latest-dwd-wgs84_transformed.mbtiles
 	mv -f /scratch/tmp/raa01-wx_10000-latest-dwd-wgs84_transformed.mbtiles \
@@ -28,7 +28,7 @@ mbtiles:
 
 tag: update
 	mkdir -p ~/meteocool_tags/
-	wget --no-verbose \
+	wget --no-verbose -NS \
 		https://opendata.dwd.de/weather/radar/composit/wx/raa01-wx_10000-latest-dwd---bin \
 		-O ~/meteocool_tags/dwd-wx-composit-$$(date +%s).bin
 	ls -l ~/meteocool_tags/
@@ -62,6 +62,9 @@ push:
 	wget --no-verbose \
 		https://opendata.dwd.de/weather/radar/composit/fx/FX_LATEST.tar.bz2 \
 		-O /forecast/tmp/forecast.tar.bz2
+	if ! [ -z "${RECORDING}" ]; then \
+		cp -f /forecast/tmp/forecast.tar.bz2 /recording/FX_LATEST_$$(date "+%F-%T").tbz2 ; \
+	fi
 	tar -C /forecast/tmp/forecast -xjf /forecast/tmp/forecast.tar.bz2
 	bash -c 'for f in /forecast/tmp/forecast/FX*_0{05,10,15,20,25,30,35,40,45}_*; do nice -n 1 make -C fc_preview/ FC_FILE=$$f & done; wait'
 	mv /forecast/tmp/forecast/FX*_005_*.mbtiles /data/FX_005-latest.mbtiles
@@ -75,17 +78,26 @@ push:
 	mv /forecast/tmp/forecast/FX*_045_*.mbtiles /data/FX_045-latest.mbtiles
 	nc -z tileserver 10001 || true
 	sleep 2
-	python3 push.py /forecast/tmp/forecast/ \
-		http://app:5000/internal/trigger_browser_notification || true
+	python3 push.py /forecast/tmp/forecast/
 	rm -rf /forecast/tmp/forecast*
 
 
 update:
 	mkdir -p tmp/
 	rm -f tmp/raa01-wx_10000-latest-dwd---bin
-	wget --no-verbose \
-		https://opendata.dwd.de/weather/radar/composit/wx/raa01-wx_10000-latest-dwd---bin \
-		-O /scratch/raa01-wx_10000-latest-dwd---bin
+	cd /scratch/ && wget --no-verbose -SN \
+		http://opendata.dwd.de/weather/radar/composit/wx/raa01-wx_10000-latest-dwd---bin && \
+		md5s="$$(md5sum /scratch/raa01-wx_10000-latest-dwd---bin)" ; \
+		if ! [ "$$md5s" = "$$(cat /tmp/raa01-wx_10000-latest-dwd---bin.md5)" ]; then \
+			echo "$$md5s" > /tmp/raa01-wx_10000-latest-dwd---bin.md5 ; \
+			if ! [ -z "${RECORDING}" ]; then \
+				cp -f raa01-wx_10000-latest-dwd---bin /recording/raa01-wx_10000-latest-dwd---bin-$$(date "+%F-%T") ; \
+			fi ; \
+			exit 0 ; \
+		else \
+			echo "No new data from dwd" ; \
+			exit 1 ; \
+		fi
 
 clean:
 	rm -rf tmp/

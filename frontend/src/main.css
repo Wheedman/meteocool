@@ -52,6 +52,11 @@
 	cursor: pointer;
 }
 
+#openSettings {
+	cursor: pointer;
+	display: none;
+}
+
 #navbar #spacer {
 	padding-top: constant(safe-area-inset-top);
 	display: none;
@@ -286,8 +291,14 @@ hr {
 }
 
 #appstoreBtns img {
-	width: 20%;
+	width: 30%;
 	margin: 2%;
+	margin-top: 0%;
+	margin-bottom: 0%;
+}
+
+#iosBtn {
+	width: 27% !important;
 }
 
 .clickable {
@@ -307,25 +318,59 @@ hr {
 }
 
 @-webkit-keyframes pulse {
-  0% {
-    -webkit-transform: scale(0.8);
-  }
-  50% {
-    -webkit-transform: scale(1.2);
-  }
-  100% {
-    -webkit-transform: scale(0.8);
-  }
+	0% {
+		-webkit-transform: scale(0.8);
+	}
+	50% {
+		-webkit-transform: scale(1.2);
+	}
+	100% {
+		-webkit-transform: scale(0.8);
+	}
 }
 
 @keyframes pulse {
-  0% {
-    transform: scale(0.8);
-  }
-  50% {
-    transform: scale(1.2);
-  }
-  100% {
-    transform: scale(0.8);
-  }
+	0% {
+		transform: scale(0.8);
+	}
+	50% {
+		transform: scale(1.2);
+	}
+	100% {
+		transform: scale(0.8);
+	}
 }
+
+.forecastTime {
+	margin-left: auto;
+	margin-right: auto;
+	left: 0;
+	right: 0;
+	position: absolute;
+	text-align: center;
+	z-index: 1000;
+	width: 70px;
+	margin-top: 10px;
+	display: none;
+}
+
+.forecastTimeInner {
+	display: block;
+	margin: 1px;
+	padding: 0;
+	color: #fff;
+	text-align: center;
+	background-color: rgba(0,60,136,.5);
+	border: none;
+	border-radius: 2px;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.popover-body {
+	height: 210px;
+	overflow-y: auto;
+	white-space: pre-wrap;
+}
+
+/* vim: set sw=8 ts=8 tw=80 autoindent noexpandtab : */
