@@ -36,7 +36,8 @@ import com.meteocool.utility.*
 import org.jetbrains.anko.defaultSharedPreferences
 
 
-class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SharedPreferences.OnSharedPreferenceChangeListener {
+class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SharedPreferences.OnSharedPreferenceChangeListener,
+    MapFragment.WebViewClientListener {
 
     private val pendingIntent: PendingIntent
         get() {
@@ -82,7 +83,8 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
         setContentView(R.layout.activity_meteocool)
         val appVersion = findViewById<TextView>(R.id.app_version)
         appVersion.text = String.format("v %s", applicationContext.packageManager.getPackageInfo(packageName, 0).versionName)
-        supportFragmentManager.beginTransaction().replace(R.id.fragmentContainer, MapFragment()).commit()
+
+        supportFragmentManager.beginTransaction().add(R.id.fragmentContainer, MapFragment()).commit()
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.settings, SettingsFragment())
@@ -239,6 +241,8 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
     }
 
 
+
+
     private val locationRequest : LocationRequest?
         get(){
            return  LocationRequest.create()?.apply {
@@ -271,6 +275,12 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
          */
         private const val MAX_WAIT_TIME = UPDATE_INTERVAL
 
+    }
+
+    override fun receivedWebViewError() {
+        Log.d(TAG,supportFragmentManager.backStackEntryCount.toString())
+        supportFragmentManager.beginTransaction().addToBackStack("Test").add(R.id.fragmentContainer, ErrorFragment()).commit()
+        Log.d(TAG,supportFragmentManager.backStackEntryCount.toString())
     }
 
 
