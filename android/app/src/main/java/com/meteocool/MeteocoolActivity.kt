@@ -8,12 +8,10 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.net.Network
 import android.util.Log
 import android.webkit.WebView
-import android.widget.ListView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
+import androidx.activity.viewModels
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.gms.common.ConnectionResult
@@ -24,7 +22,6 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnCompleteListener
 
 import com.google.firebase.iid.FirebaseInstanceId
-import com.meteocool.location.LocationResultHelper
 import com.meteocool.location.LocationUpdatesBroadcastReceiver
 import com.meteocool.location.UploadLocation
 import com.meteocool.location.WebAppInterface
@@ -33,11 +30,12 @@ import org.jetbrains.anko.doAsync
 import com.meteocool.security.Validator
 import com.meteocool.settings.SettingsFragment
 import com.meteocool.utility.*
+import com.meteocool.view.WebViewModel
 import org.jetbrains.anko.defaultSharedPreferences
 
 
 class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SharedPreferences.OnSharedPreferenceChangeListener,
-    MapFragment.WebViewClientListener {
+    WebFragment.WebViewClientListener {
 
     private val pendingIntent: PendingIntent
         get() {
@@ -53,8 +51,12 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
      */
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
 
+    private val webViewModel : WebViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
 
         FirebaseInstanceId.getInstance().instanceId
             .addOnCompleteListener(OnCompleteListener { task ->
@@ -84,7 +86,7 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
         val appVersion = findViewById<TextView>(R.id.app_version)
         appVersion.text = String.format("v %s", applicationContext.packageManager.getPackageInfo(packageName, 0).versionName)
 
-        supportFragmentManager.beginTransaction().add(R.id.fragmentContainer, MapFragment()).commit()
+        supportFragmentManager.beginTransaction().replace(R.id.fragmentContainer, WebFragment()).commit()
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.settings, SettingsFragment())
@@ -97,8 +99,35 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
         val drawerList : ListView = findViewById(R.id.drawer_menu)
         val navAdapter = NavDrawerAdapter(this, R.layout.menu_item, drawerItems)
         drawerList.adapter = navAdapter
-        drawerList.onItemClickListener = navAdapter
+        //TODO Maybe merge button in errorfragment with click listener in drawer -> try navigating to WebView
+       /* drawerList.onItemClickListener = AdapterView.OnItemClickListener{
+            handleWebViewNavigation()
+        }  */
+        addClickListenerTo(drawerList)
+    }
 
+    private fun addClickListenerTo(drawerList: ListView) {
+        drawerList.onItemClickListener =
+            AdapterView.OnItemClickListener { adapterView, view, pos, id ->
+                Log.d(TAG, "{${webViewModel._url.value} + before change")
+                supportFragmentManager.popBackStackImmediate()
+                val selectedItem = adapterView.adapter.getItem(pos) as NavDrawerItem
+                when(selectedItem.menuHeading) {
+                    getString(R.string.map_header)->{
+                        val lastState = defaultSharedPreferences.getString("map_url", null)
+                        if (lastState != null) {
+                            webViewModel._url.value = lastState
+                        } else {
+                            webViewModel._url.value = WebViewModel.MAP_URL
+                        }
+                    }
+                    getString(R.string.menu_documentation) ->{
+                        webViewModel._url.value = WebViewModel.DOC_URL
+                    }
+
+                }
+                Log.d(TAG, "{${webViewModel._url.value} + after change")
+            }
     }
 
     /**
@@ -134,8 +163,7 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
     override fun onStart() {
         super.onStart()
 
-        val mWebView : WebView = findViewById(R.id.webView)
-        mWebView.addJavascriptInterface(WebAppInterface(this), "Android")
+
 
         val token = defaultSharedPreferences.getString("fb", "no token")!!
         doAsync {
@@ -240,9 +268,6 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
         }
     }
 
-
-
-
     private val locationRequest : LocationRequest?
         get(){
            return  LocationRequest.create()?.apply {
@@ -274,13 +299,10 @@ class MeteocoolActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbac
          * delivered sooner than this interval.
          */
         private const val MAX_WAIT_TIME = UPDATE_INTERVAL
-
     }
 
     override fun receivedWebViewError() {
-        Log.d(TAG,supportFragmentManager.backStackEntryCount.toString())
-        supportFragmentManager.beginTransaction().addToBackStack("Test").add(R.id.fragmentContainer, ErrorFragment()).commit()
-        Log.d(TAG,supportFragmentManager.backStackEntryCount.toString())
+        supportFragmentManager.beginTransaction().replace(R.id.fragmentContainer, ErrorFragment()).addToBackStack("Test").commit()
     }
 
 

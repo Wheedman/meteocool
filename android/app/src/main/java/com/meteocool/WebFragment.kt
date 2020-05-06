@@ -2,34 +2,48 @@ package com.meteocool
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.WebResourceError
-import android.webkit.WebResourceRequest
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
+import androidx.fragment.app.activityViewModels
+import com.meteocool.location.WebAppInterface
 import com.meteocool.security.Validator
-import java.util.*
+import com.meteocool.view.WebViewModel
 
 
-class MapFragment() : Fragment(){
+class WebFragment() : Fragment(){
 
     interface WebViewClientListener{
         fun receivedWebViewError()
     }
 
-    companion object {
-        const val MAP_URL = "https://meteocool.com/?mobile=android2"
-        const val DOC_URL = "https://meteocool.com/documentation.html"
-    }
     private lateinit var listener : WebViewClientListener
     private lateinit var mWebView : WebView
+    private var errorReceived : Boolean = false
+
+
+
+    private val webViewModel : WebViewModel by activityViewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        webViewModel.initialStart()
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_map, container, false)
         mWebView = view.findViewById(R.id.webView)
+
+        val urlObserver = androidx.lifecycle.Observer<String>{
+            newUrl ->
+            mWebView.stopLoading()
+            mWebView.loadUrl(newUrl)
+        }
+
+        webViewModel._url.observe(viewLifecycleOwner, urlObserver)
 
         val webSettings = mWebView.settings
         webSettings.javaScriptEnabled = true
@@ -37,21 +51,20 @@ class MapFragment() : Fragment(){
         webSettings.databaseEnabled = true
         webSettings.setGeolocationEnabled(true)
 
-        val locale = when(Locale.getDefault().displayLanguage.compareTo(Locale.GERMAN.displayLanguage)){
-            0 -> "&lang=de"
-            else -> "&lang=en"
-        }
-        mWebView.loadUrl(MAP_URL +locale)
+
+//        mWebView.loadUrl(viewModel.url.value + locale)
         // Force links and redirects to open in the WebView instead of in a browser
         mWebView.webViewClient = MyWebViewClient(listener)
         return view
     }
 
-
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+    }
 
     override fun onResume() {
         super.onResume()
-        if(Validator.isLocationPermissionGranted(activity!!.applicationContext)) {
+        /*if(!errorReceived && Validator.isLocationPermissionGranted(requireActivity().applicationContext)) {
             val string = "window.manualTileUpdateFn(true);"
             mWebView.post {
                 run {
@@ -59,7 +72,7 @@ class MapFragment() : Fragment(){
                     }
                 }
             }
-        }
+        }*/
     }
 
     override fun onAttach(context: Context) {
@@ -73,7 +86,7 @@ class MapFragment() : Fragment(){
         }
     }
 
-    class MyWebViewClient(private val listener : WebViewClientListener) : WebViewClient(){
+    inner class MyWebViewClient(private val listener : WebViewClientListener) : WebViewClient(){
 
         override fun onReceivedError(
             view: WebView?,
@@ -81,7 +94,29 @@ class MapFragment() : Fragment(){
             error: WebResourceError?
         ) {
             super.onReceivedError(view, request, error)
+            Log.d("WebFragment", "onReceivedError")
+            errorReceived = true
             listener.receivedWebViewError()
+        }
+
+        override fun onPageFinished(view: WebView?, url: String?) {
+            super.onPageFinished(view, url)
+            Log.d("WebFragment", "onPageFinished")
+            if(!errorReceived) {
+                view?.addJavascriptInterface(WebAppInterface(requireActivity()), "Android")
+            }else{
+                errorReceived = false
+            }
+        }
+
+        override fun onReceivedHttpError(
+            view: WebView?,
+            request: WebResourceRequest?,
+            errorResponse: WebResourceResponse?
+        ) {
+            super.onReceivedHttpError(view, request, errorResponse)
+            Log.d("WebFragment", "onReceivedHttpError")
+
         }
     }
 }
